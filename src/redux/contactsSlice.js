@@ -6,6 +6,7 @@ const initialState = {
   filteredItems: [],
   loading: false,
   error: null,
+  filter: "", // добавил поле для фильтра
 };
 
 export const fetchContacts = createAsyncThunk("contacts/fetchAll", async () => {
@@ -35,6 +36,10 @@ const contactsSlice = createSlice({
   reducers: {
     changeFilter: (state, action) => {
       state.filter = action.payload;
+    },
+    RESET_FILTER: (state) => {
+      // добавил редьюсер для сброса фильтра
+      state.filter = "";
     },
   },
   extraReducers: (builder) => {

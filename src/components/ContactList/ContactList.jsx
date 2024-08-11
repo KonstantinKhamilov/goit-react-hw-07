@@ -12,6 +12,16 @@ function ContactList() {
     dispatch(fetchContacts());
   }, [dispatch]);
 
+  useEffect(() => {
+    const handleBlur = () => {
+      dispatch({ type: "RESET_FILTER" }); // сброс фильтра
+    };
+    document.addEventListener("click", handleBlur);
+    return () => {
+      document.removeEventListener("click", handleBlur);
+    };
+  }, []);
+
   const handleDeleteContact = (id) => {
     dispatch(deleteContact(id));
   };

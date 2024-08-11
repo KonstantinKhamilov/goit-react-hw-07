@@ -10,6 +10,10 @@ const SearchBox = () => {
     dispatch(changeFilter(newFilter));
   };
 
+  const handleResetFilter = () => {
+    dispatch(changeFilter(""));
+  };
+
   return (
     <label htmlFor="filter-input">
       Фильтр:
@@ -19,6 +23,7 @@ const SearchBox = () => {
         value={filter}
         onChange={handleFilterChange}
       />
+      <button onClick={handleResetFilter}>Сбросить фильтр</button>
     </label>
   );
 };
