@@ -1,54 +1,94 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { v4 as uuidv4 } from "uuid";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import axios from "axios";
 
 const initialState = {
-  contacts: [
-    { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
-    { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-    { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-    { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-  ],
-  filter: "",
+  items: [],
+  filteredItems: [],
+  loading: false,
   error: null,
 };
+
+export const fetchContacts = createAsyncThunk("contacts/fetchAll", async () => {
+  const response = await axios.get("/contacts");
+  return response.data;
+});
+
+export const addContact = createAsyncThunk(
+  "contacts/addContact",
+  async (contact) => {
+    const response = await axios.post("/contacts", contact);
+    return response.data;
+  }
+);
+
+export const deleteContact = createAsyncThunk(
+  "contacts/deleteContact",
+  async (id) => {
+    await axios.delete(`/contacts/${id}`);
+    return id;
+  }
+);
 
 const contactsSlice = createSlice({
   name: "contacts",
   initialState,
   reducers: {
-    addContact(state, action) {
-      const newContact = action.payload;
-      const existingContact = state.contacts.find(
-        (contact) =>
-          contact.name === newContact.name &&
-          contact.number === newContact.number
-      );
-
-      if (existingContact) {
-        state.error = "Контакт с таким именем и номером уже существует";
-      } else if (!newContact.name || !newContact.number) {
-        state.error = "Пожалуйста, введите имя и номер телефона";
-      } else {
-        const newContactWithId = { ...newContact, id: uuidv4() };
-        state.contacts.push(newContactWithId);
-      }
-    },
-    deleteContact(state, action) {
-      const contactId = action.payload;
-      state.contacts = state.contacts.filter(
-        (contact) => contact.id !== contactId
-      );
-    },
-    changeFilter(state, action) {
+    changeFilter: (state, action) => {
       state.filter = action.payload;
     },
-    clearError(state) {
-      state.error = null;
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchContacts.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchContacts.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = [...action.payload];
+        state.filteredItems = [...action.payload];
+      })
+      .addCase(fetchContacts.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(addContact.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addContact.fulfilled, (state, action) => {
+        state.loading = false;
+        const existingContact = state.items.find(
+          (contact) =>
+            contact.name === action.payload.name &&
+            contact.number === action.payload.number
+        );
+        if (!existingContact) {
+          state.items = [...state.items, action.payload];
+          state.filteredItems = [...state.filteredItems, action.payload];
+        }
+      })
+      .addCase(addContact.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(deleteContact.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(deleteContact.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = state.items.filter(
+          (contact) => contact.id !== action.payload
+        );
+        state.filteredItems = state.filteredItems.filter(
+          (contact) => contact.id !== action.payload
+        );
+      })
+      .addCase(deleteContact.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      });
   },
 });
 
-export const { addContact, deleteContact, changeFilter, clearError } =
-  contactsSlice.actions;
+export const selectContacts = (state) => state.contacts.items;
+export const { changeFilter } = contactsSlice.actions;
 export default contactsSlice.reducer;
-export const selectError = (state) => state.contacts.error;

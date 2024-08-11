@@ -1,28 +1,37 @@
 import { useSelector, useDispatch } from "react-redux";
-import { deleteContact } from "../../redux/contactsSlice.js";
-import css from "./contact.module.css";
+import { useEffect } from "react";
+import { fetchContacts, deleteContact } from "../../redux/contactsOps";
+import { selectContacts } from "../../redux/contactsSlice";
 
-const ContactList = () => {
-  const contacts = useSelector((state) => state.contacts.contacts);
-  const filter = useSelector((state) => state.filters.filter);
+function ContactList() {
   const dispatch = useDispatch();
+  const contacts = useSelector(selectContacts);
+  const filter = useSelector((state) => state.contacts.filter || "");
 
-  const filteredContacts = contacts.filter((contact) =>
-    contact.name.toLowerCase().includes(filter.toLowerCase())
-  );
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
+
+  const handleDeleteContact = (id) => {
+    dispatch(deleteContact(id));
+  };
+
+  const filteredContacts = contacts.filter((contact) => {
+    return contact.name.toLowerCase().includes(filter.toLowerCase());
+  });
 
   return (
-    <ul className={css.contactlistUl}>
+    <ul>
       {filteredContacts.map((contact) => (
         <li key={contact.id}>
-          {contact.name}: {contact.number}
-          <button onClick={() => dispatch(deleteContact(contact.id))}>
+          {contact.name} - {contact.number}
+          <button onClick={() => handleDeleteContact(contact.id)}>
             Удалить
           </button>
         </li>
       ))}
     </ul>
   );
-};
+}
 
 export default ContactList;

@@ -1,5 +1,4 @@
 import { createSlice } from "@reduxjs/toolkit";
-import React from "react";
 
 const initialState = {
   filter: "",
@@ -15,20 +14,5 @@ const filtersSlice = createSlice({
   },
 });
 
-export const { changeFilter: setFilter } = filtersSlice.actions; // переименованный экспорт
+export const { changeFilter } = filtersSlice.actions;
 export default filtersSlice.reducer;
-
-export function getFilterComponent(dispatch, filter) {
-  return React.createElement(
-    "label",
-    null,
-    "Фильтр:",
-    React.createElement("input", {
-      type: "text",
-      value: filter,
-      onChange: (e) => {
-        dispatch(setFilter(e.target.value)); // используйте переименованный экспорт
-      },
-    })
-  );
-}
