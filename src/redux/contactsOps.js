@@ -11,17 +11,11 @@ export const fetchContacts = createAsyncThunk("contacts/fetchAll", async () => {
 export const addContact = createAsyncThunk(
   "contacts/addContact",
   async (contact) => {
-    const response = await fetchContacts(); // Получаем список всех контактов
-    const existingContact = response.data.find(
-      (item) => item.name === contact.name && item.phone === contact.phone
-    );
-    if (!existingContact) {
-      const newContact = await axios.post("/contacts", contact);
-      return newContact.data;
-    } else {
-      throw new Error(
-        "Контакт с таким именем и номером телефона уже существует!"
-      );
+    try {
+      const response = await axios.post("/contacts", contact);
+      return response.data;
+    } catch (error) {
+      throw new Error(`Ошибка добавления контакта: ${error.message}`);
     }
   }
 );

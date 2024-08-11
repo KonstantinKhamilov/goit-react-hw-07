@@ -2,6 +2,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { fetchContacts, deleteContact } from "../../redux/contactsOps";
 import { selectContacts } from "../../redux/contactsSlice";
+import css from "./contact.module.css";
 
 function ContactList() {
   const dispatch = useDispatch();
@@ -31,9 +32,9 @@ function ContactList() {
   });
 
   return (
-    <ul>
+    <ul className={css.contactlistUl}>
       {filteredContacts.map((contact) => (
-        <li key={contact.id}>
+        <li className={css.contactListLi} key={contact.id}>
           {contact.name} - {contact.number}
           <button onClick={() => handleDeleteContact(contact.id)}>
             Удалить

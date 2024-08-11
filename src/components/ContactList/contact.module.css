@@ -1,3 +1,11 @@
 .contactlistUl {
   list-style: none;
 }
+
+.contactListLi {
+  padding: 5px;
+}
+
+label {
+  padding: 5px;
+}
