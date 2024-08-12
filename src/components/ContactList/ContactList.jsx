@@ -1,19 +1,28 @@
 import { useSelector, useDispatch } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { fetchContacts, deleteContact } from "../../redux/contactsOps";
-import { selectContacts } from "../../redux/contactsSlice";
+import { selectFilteredContacts } from "../../redux/contactsSlice";
 import css from "./contact.module.css";
 
 function ContactList() {
   const dispatch = useDispatch();
-  const contacts = useSelector(selectContacts);
-  const filter = useSelector((state) => state.contacts.filter || "");
+  const filteredContacts = useSelector(selectFilteredContacts);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    dispatch(fetchContacts());
-  }, [dispatch]);
+    const fetchContactsAsync = async () => {
+      try {
+        setLoading(true);
+        await dispatch(fetchContacts());
+        setLoading(false);
+      } catch (error) {
+        setError(error.message);
+        setLoading(false);
+      }
+    };
+    fetchContactsAsync();
 
-  useEffect(() => {
     const handleBlur = () => {
       dispatch({ type: "RESET_FILTER" }); // сброс фильтра
     };
@@ -21,15 +30,19 @@ function ContactList() {
     return () => {
       document.removeEventListener("click", handleBlur);
     };
-  }, []);
+  }, [dispatch]);
 
   const handleDeleteContact = (id) => {
     dispatch(deleteContact(id));
   };
 
-  const filteredContacts = contacts.filter((contact) => {
-    return contact.name.toLowerCase().includes(filter.toLowerCase());
-  });
+  if (loading) {
+    return <p>Загрузка...</p>;
+  }
+
+  if (error) {
+    return <p>Ошибка: {error}</p>;
+  }
 
   return (
     <ul className={css.contactlistUl}>

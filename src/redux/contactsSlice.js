@@ -1,45 +1,24 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createSelector } from "@reduxjs/toolkit";
 import axios from "axios";
+import { fetchContacts, addContact, deleteContact } from "./contactsOps";
+
+axios.defaults.baseURL = "https://66b762ce7f7b1c6d8f1bbfb3.mockapi.io";
 
 const initialState = {
   items: [],
-  filteredItems: [],
   loading: false,
   error: null,
-  filter: "", // добавил поле для фильтра
+  filters: {
+    filter: "",
+  },
 };
-
-export const fetchContacts = createAsyncThunk("contacts/fetchAll", async () => {
-  const response = await axios.get("/contacts");
-  return response.data;
-});
-
-export const addContact = createAsyncThunk(
-  "contacts/addContact",
-  async (contact) => {
-    const response = await axios.post("/contacts", contact);
-    return response.data;
-  }
-);
-
-export const deleteContact = createAsyncThunk(
-  "contacts/deleteContact",
-  async (id) => {
-    await axios.delete(`/contacts/${id}`);
-    return id;
-  }
-);
 
 const contactsSlice = createSlice({
   name: "contacts",
   initialState,
   reducers: {
     changeFilter: (state, action) => {
-      state.filter = action.payload;
-    },
-    RESET_FILTER: (state) => {
-      // добавил редьюсер для сброса фильтра
-      state.filter = "";
+      state.filters.filter = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -50,7 +29,6 @@ const contactsSlice = createSlice({
       .addCase(fetchContacts.fulfilled, (state, action) => {
         state.loading = false;
         state.items = [...action.payload];
-        state.filteredItems = [...action.payload];
       })
       .addCase(fetchContacts.rejected, (state, action) => {
         state.loading = false;
@@ -61,15 +39,7 @@ const contactsSlice = createSlice({
       })
       .addCase(addContact.fulfilled, (state, action) => {
         state.loading = false;
-        const existingContact = state.items.find(
-          (contact) =>
-            contact.name === action.payload.name &&
-            contact.number === action.payload.number
-        );
-        if (!existingContact) {
-          state.items = [...state.items, action.payload];
-          state.filteredItems = [...state.filteredItems, action.payload];
-        }
+        state.items = [...state.items, action.payload];
       })
       .addCase(addContact.rejected, (state, action) => {
         state.loading = false;
@@ -83,9 +53,6 @@ const contactsSlice = createSlice({
         state.items = state.items.filter(
           (contact) => contact.id !== action.payload
         );
-        state.filteredItems = state.filteredItems.filter(
-          (contact) => contact.id !== action.payload
-        );
       })
       .addCase(deleteContact.rejected, (state, action) => {
         state.loading = false;
@@ -95,5 +62,19 @@ const contactsSlice = createSlice({
 });
 
 export const selectContacts = (state) => state.contacts.items;
+
+export const selectFilteredContacts = createSelector(
+  (state) => state.contacts.items,
+  (state) => state.contacts.filters.filter,
+  (items, filter) =>
+    items.filter((contact) => {
+      const name = contact.name.toLowerCase();
+      const number = contact.number.toLowerCase();
+      const filterValue = filter.toLowerCase();
+      return name.includes(filterValue) || number.includes(filterValue);
+    })
+);
+
 export const { changeFilter } = contactsSlice.actions;
+
 export default contactsSlice.reducer;

@@ -2,11 +2,11 @@ import { useSelector, useDispatch } from "react-redux";
 import { changeFilter } from "../../redux/contactsSlice";
 
 const SearchBox = () => {
-  const filter = useSelector((state) => state.contacts.filter || "");
+  const filter = useSelector((state) => state.contacts.filters.filter || "");
   const dispatch = useDispatch();
 
   const handleFilterChange = (e) => {
-    const newFilter = e.target.value;
+    const newFilter = e.target.value.toLowerCase();
     dispatch(changeFilter(newFilter));
   };
 

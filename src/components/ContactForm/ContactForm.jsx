@@ -36,7 +36,7 @@ const ContactForm = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <label className={css}>
+      <label className={css.label}>
         Имя:
         <input
           type="text"
@@ -44,7 +44,7 @@ const ContactForm = () => {
           onChange={(e) => setName(e.target.value)}
         />
       </label>
-      <label className={css}>
+      <label className={css.label}>
         Номер телефона:
         <input
           type="text"
